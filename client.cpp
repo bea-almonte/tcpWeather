@@ -15,11 +15,12 @@ bool endProgram = false;
 
 int main(int argc, char ** argv)
 {
-    pthread_t thread; // thread to keep listening
+    //pthread_t thread; // thread to keep listening
     int port = 60000;
     int sock = -1;
     struct sockaddr_in address;
-    char server_message[2000], client_message[2000];
+    //char server_message[2000];
+    //char client_message[2000];
     
     if (argc > 1)
     {
@@ -52,14 +53,14 @@ int main(int argc, char ** argv)
 
  
     // create new thread to listen
-    pthread_create(&thread,0,Receive, &sock);
-    pthread_detach(thread);
+    /* pthread_create(&thread,0,Receive, &sock);
+    pthread_detach(thread); */
 
 
-    while (!endProgram) {
+/*     while (!endProgram) {
         // output options
         // select option
-    }
+    } */
     
 
     /* close socket */
@@ -77,16 +78,21 @@ void LoginOutput() {
 
 void Login(int sock) {
     bool loggedIn = false;
-    char outputBuffer[2000];
+    char server_message[2000];
+    char client_message[2000];
     std::string input;
+    int sent = 0;
     std::string username;
     std::string password;
+
     std::cout << "\nWelcome!\\n";
     
     while (!loggedIn) {
         LoginOutput();
         std::cin >> input;
         if (input == "exit") {
+            sprintf(client_message,"3");
+            sent = write(sock, &client_message, strlen(client_message)+1);
             endProgram = true;
             break;
         } else if (input == "1") {
@@ -94,16 +100,61 @@ void Login(int sock) {
             std::cin >> username;
             std::cout << "Password: ";
             std::cin >> password;
-            sprintf(outputBuffer,"1 %s %s",username.c_str(),password.c_str());
-            std::cout << outputBuffer;
-            write(sock, &outputBuffer, strlen(outputBuffer));
+            // send code user password
+            memset(client_message,0,2000);
+            memset(server_message,0,2000);
+            // code username password
+            sprintf(client_message,"1 %s %s",username.c_str(),password.c_str());
+            std::cout << "Sending: " << client_message << std::endl;
+            sent = write(sock, &client_message, strlen(client_message)+1);
+
+
+            // server sends status reponse message
+            std::cout << sent << std::endl;
+            recv(sock, server_message, sizeof(server_message), 0);
+            std::string test(server_message);
+
+            // 200 successful login
+            // 201 wrong password
+            // 202 wrong username
+            
+            if (test == "100") {
+                std::cout << "Succesfully Logged In.\n";
+                loggedIn = true;
+            } else if (test == "101") {
+                std::cout << "RESPONSE: " << server_message << std::endl;
+                std::cout << "Username not found.\n";
+            } else if (test == "102") {
+                std::cout << "Incorrect Password.\n";
+            } else {
+                std::cout << "Bad server response.\n";
+            }
+
+        } else if (input == "2") {
+            std::cout << "Username: ";
+            std::cin >> username;
+            std::cout << "Password: ";
+            std::cin >> password;
+            // send code username password
+            sprintf(client_message,"2 %s %s",username.c_str(),password.c_str());
+            std::cout << client_message;
+            write(sock, &client_message, strlen(client_message));
+            recv(sock, server_message, sizeof(server_message), 0);
+            std::string test(server_message);
+
+            if (test == "200") {
+                std::cout << "Succesfully Registered.\n";
+            } else {
+                std::cout << "Bad server response.\n";
+            }
         }
         
     }
 }
 
 void * Receive(void * ptr) {
-    char server_message[2000], client_message[2000];
+    char server_message[2000];
+    //char client_message[2000];
     int sock = 0;
     std::string msg;
     sock = *(int*)ptr;
@@ -120,8 +171,5 @@ void * Receive(void * ptr) {
     /* close socket */
     close(sock);
 
-    //delete[] buffer;
-    
-    close(sock);
     pthread_exit(0);
 }

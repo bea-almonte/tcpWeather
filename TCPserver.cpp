@@ -28,11 +28,17 @@ int totalUsers = 0;
 void * Process(void * ptr);
 int CreateSocket(int portNumber);
 
+typedef struct {
+    int sock; // socket of client
+    struct sockaddr address; // address of client
+    unsigned int addr_len;   // length of address
+} connection_t;
+
 int main (int argc, char** argv) {
     pthread_t thread;
     int serverSocket = 0;
     int portNumber = 0;
-    User tempUser;
+    connection_t clientConn;
 
     if (argc > 1)
     {
@@ -49,17 +55,18 @@ int main (int argc, char** argv) {
 
     while (true) {
         // accept connection
-        //connection = (connection_t *)malloc(sizeof(connection_t));
-        
-        tempUser.sock = accept(serverSocket, &tempUser.address, &tempUser.addr_len);
-        users.push_back(tempUser);
+        clientConn.sock = accept(serverSocket, &clientConn.address, &clientConn.addr_len);
+  
         std::cout << "\n===============================\n";
         std::cout << "Created thread.\n";
-        totalUsers = users.size() -1;
-        pthread_create(&thread,0,Process, &totalUsers);
+
+        pthread_create(&thread,0,Process, &clientConn.sock);
         pthread_detach(thread);
     
     }
+
+    
+
     return 0;
 }
 
@@ -97,31 +104,34 @@ int CreateSocket(int portNumber) {
 }
 
 void * Process(void * ptr) {
-    char * buffer = new char[4096];
-    char clientStr[2000], serverStr[2000];
-    int it = 0; // iterator
-    int *it_ptr;
-    bool exitClient = false;
-    it_ptr = (int*)ptr;
-    it = *it_ptr;
-
-
-    std::cout << "User #" << it << std::endl;
+    //char * buffer = new char[4096];
+    //char clientStr[2000], serverStr[2000];
+    int sock = 0; // iterator
+    sock = *(int*)ptr;
+    User tempUser;
     // clear buffer
-    std::cout << "Sock: " << users.at(it).sock << std::endl;
-    memset(buffer,0,4096);
+    tempUser.sock = sock;
+    std::cout << "Sock: " << sock << std::endl;
 
-    while (!exitClient) {
-        memset(clientStr,0,2000);
-        sprintf(serverStr, "Send me messages, client.");
-        write(users.at(it).sock, serverStr, strlen(serverStr));
-        recv(users.at(it).sock, clientStr, sizeof(clientStr), 0);
-        // ss << buffer
-        // ss >> request
-        // login or register
-        std::cout << "User #" << it << std::endl;
-        printf("Msg from client: %s\n", clientStr);   
-        std::cout << "===============================\n";
+    //memset(buffer,0,4096);
+
+    // Get username and password
+    // login or register
+    while(!tempUser.Login());
+
+    // pushes back if logged in
+    // exit if client wants to exit
+    if (tempUser.exitUser){
+        close(tempUser.sock);
+        //users.erase(users.begin() + it);
+        std::cout << "Connection Terminated.\n";
+        pthread_exit(0);
+    }
+    users.push_back(tempUser);
+    totalUsers++;
+
+    for (int i = 0; i < users.size(); i++) {
+        std::cout << "User logged: " << users[i].username << std::endl;
     }
     // set username
 
@@ -129,7 +139,8 @@ void * Process(void * ptr) {
     
     //delete[] buffer;
     
-    close(users.at(it).sock);
-    users.erase(users.begin() + it);
+    close(tempUser.sock);
+    //users.erase(users.begin() + it);
+    std::cout << "Connection Terminated.\n";
     pthread_exit(0);
 }
