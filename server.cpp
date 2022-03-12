@@ -20,7 +20,7 @@
 
 #define PORT 60001
 typedef struct {
-    int sock; // socket
+    int sock; // socket of client
     struct sockaddr address; // address of client
     unsigned int addr_len;   // length of address
 } connection_t;
@@ -124,6 +124,7 @@ void * Process(void * ptr) {
         }
     }
      */
+    std::cout << "Sock: " << conn->sock << std::endl;
     for (int i = 0; i < 5; i++) {
         send(conn->sock, buffer, strlen(buffer), 0);
         memset(clientStr,0,2000);
