@@ -59,6 +59,17 @@ void tcpServer::AcceptClients() {
 }
 
 void tcpServer::LogoutUser(std::string userDel) {
+    // unsubscribe
+    User tempUser;
+    tempUser = users.at(FindPos(userDel));
+    for (long unsigned int i = 0; i < locations.size(); i++) {
+        locations.at(i).unsubscribeUser(userDel);
+    }
+
+    for (long unsigned int i = 0; i < locations.size(); i++) {
+        locations.at(i).DisplayUsers();
+    }
+
     for (long unsigned int i = 0; i < users.size(); i++) {
         if (userDel == users.at(i).username) {
             users.erase(users.begin() + i);
@@ -225,6 +236,10 @@ void tcpServer::ExecuteCommands(User tempUser) {
                 break;
             case '8':
                 std::cout << "Change password\n";
+                recv(tempUser.sock, client_message, sizeof(client_message), 0);
+                input = ConvertoString(client_message);
+                ChangePassword(input,tempUser);
+                ChangePasswordFile(input, tempUser.username);
                 break;
             default:
                 std::cout << "Invalid Request\n";
@@ -234,6 +249,65 @@ void tcpServer::ExecuteCommands(User tempUser) {
     }
 }
 
+void tcpServer::ChangePassword(std::string newPass, User tempUser) {
+    std::string passwords;
+    userMtx.lock();
+    passwords.append(users.at(FindPos(tempUser.username)).password);
+    userMtx.unlock();
+
+    passwords.append(" | ");
+    passwords.append(tempUser.password);
+    passwords.append(" | ");
+    tempUser.password = newPass;
+    userMtx.lock();
+    users.at(FindPos(tempUser.username)) = tempUser;
+    passwords.append(users.at(FindPos(tempUser.username)).password);
+    userMtx.unlock();
+    std::cout << passwords << std::endl;
+}
+
+void tcpServer::ChangePasswordFile(std::string newPass, std::string findUser) {
+    int posFound = 0;
+    // rename password to passwordDel
+    std::ifstream inPass;
+    std::ofstream outPass;
+    std::string temp;
+    // rename
+    char old[] = "passwords.txt";
+    char newName[] = "passwordDel.txt";
+    rename(old,newName);
+    // findposition
+    inPass.open("usernames.txt");
+
+    while (inPass >> temp) {
+        if (findUser == temp) {
+            break;
+        }
+        posFound++;
+    }
+    std::cout << "Pos: " <<posFound;
+    inPass.close();
+    // check findUser in usernames set to Posfound
+    // when found then send until posFound
+    inPass.open("passwordDel.txt");
+    outPass.open("passwords.txt");
+    for (int i = 0; i < posFound; i++) {
+        inPass >> temp;
+        outPass << temp << std::endl;
+    }
+    inPass >> temp;
+    outPass << newPass <<std::endl;
+
+    while (inPass >> temp) {
+        outPass << temp << std::endl;
+    }
+    std::cout << "Did it end\n";
+    inPass.close();
+    outPass.close();
+    // cin >> temp
+    // when i = posFound, cout << newPass
+    // add another loop
+}
 
 void tcpServer::Process(int sock) {
     User tempUser;
@@ -269,7 +343,7 @@ void tcpServer::Process(int sock) {
     ExecuteCommands(tempUser);
   
     userMtx.lock();
-    LogoutUser(tempUser.username);
+    LogoutUser(tempUser.username); // update to remove subscriptions
     userMtx.unlock();
 
     close(tempUser.sock);

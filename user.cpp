@@ -157,7 +157,7 @@ void User::SendLocations() {
     write(sock, &server_message, strlen(server_message));
 }
 void User::SendMessage(std::string location) {
-
+// TODO
 }
 
 void User::SuscribeLocation(std::string location) {

@@ -193,6 +193,11 @@ void tcpClient::SendInput() {
                 break;
             case '8':
                 std::cout << "Change password\n";
+                std::cin >> input;
+                strcpy(client_message,input.c_str());
+                // send request
+                write(sock, &client_message, strlen(client_message));
+                memset(server_message,0,2000);
                 break;
             default:
                 std::cout << "Invalid Request\n";

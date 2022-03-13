@@ -39,7 +39,8 @@ class tcpServer {
     void UnsubscribeUser(std::string locationName, User tempUser);
     void DisplayLocations();
     int FindPos(std::string inputName);
-
+    void ChangePassword(std::string newPass, User tempUser);
+    void ChangePasswordFile(std::string newPass, std::string findUser);
 };
 
 #endif
