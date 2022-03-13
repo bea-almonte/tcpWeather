@@ -6,72 +6,61 @@
 #include <arpa/inet.h>
 #include <iostream>
 #include <pthread.h>
+#include "tcpClient.hpp"
 
 void * Receive(void * ptr); // receive messages
-void Login(int sock);
+bool endThis = false;
+/* void Login(int sock);
 void LoginOutput();
 void OutputMenu();
 void SendInput(int sock);
-bool endProgram = false;
+bool endProgram = false; */
 
 int main(int argc, char ** argv)
 {
+    tcpClient Client;
     //pthread_t thread; // thread to keep listening
-    int port = 60000;
+   /*  int port = 60000;
     int sock = -1;
-    struct sockaddr_in address;
+    struct sockaddr_in address; */
     //char server_message[2000];
     //char client_message[2000];
     
     if (argc > 1)
     {
-        port = std::stoi(argv[1]);
+        Client.SetPort(std::stoi(argv[1]));
+    } else {
+        Client.SetPort(60000);
     }
-    /* create socket */
-    sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    
+    Client.ConnectToServer();
+    
+    Client.Login();
 
-    if (sock <= 0)
-    {
-        fprintf(stderr, "%s: error: cannot create socket\n", argv[0]);
-        return -3;
-    }
-
-    /* connect to server */
-    address.sin_family = AF_INET;
-    address.sin_port = htons(port);
-    address.sin_addr.s_addr = inet_addr("127.0.0.1");
-
-
-    if (connect(sock, (struct sockaddr *)&address, sizeof(address)) < 0)
-    {
-        printf("Unable to connect\n");
-        return -5;
-    }
-
-    // create user / login
-    Login(sock);
-    // password
-
- 
-    // create new thread to listen
     /* pthread_create(&thread,0,Receive, &sock);
     pthread_detach(thread); */
 
-    SendInput(sock);
-/*     while (!endProgram) {
-        // output options
-        // select option
-    } */
-    
+    Client.SendInput();
 
+    
     /* close socket */
-    close(sock);
+    Client.CloseSocket();
 
     return 0;
 }
 
-void OutputMenu() {
-    
+/*void OutputMenu() {
+    std::cout << "Select an option:\n";
+    std::cout << " 1 Subsrcribe to a location\n";
+    std::cout << " 2 Subsrcribe to a location\n";
+    std::cout << " 3 Subsrcribe to a location\n";
+    std::cout << " 4 Subsrcribe to a location\n";
+    std::cout << " 5 Subsrcribe to a location\n";
+    std::cout << " 6 Subsrcribe to a location\n";
+    std::cout << " 7 Subsrcribe to a location\n";
+    std::cout << " 8 Subsrcribe to a location\n";
+    std::cout << " 0 Quit\n";
+
 }
 
 void LoginOutput() {
@@ -175,7 +164,7 @@ void Login(int sock) {
         }
         
     }
-}
+}*/
 
 void * Receive(void * ptr) {
     char server_message[2000];
@@ -184,7 +173,7 @@ void * Receive(void * ptr) {
     std::string msg;
     sock = *(int*)ptr;
 
-    while (!endProgram) {
+    while (!endThis) {
         recv(sock, server_message, sizeof(server_message), 0);
         printf("Server's response: %s\n",server_message);
         /* //memset(client_message,0,2000);
