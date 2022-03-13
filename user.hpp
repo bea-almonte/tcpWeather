@@ -40,6 +40,7 @@ class User {
         void ChooseFunc();
         bool UniqueUser();
         bool exitUser;
+        User& operator=(const User& createdUser);
 };
 
 #endif

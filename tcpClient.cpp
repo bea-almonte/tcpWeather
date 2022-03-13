@@ -151,15 +151,29 @@ void tcpClient::SendInput() {
                 std::cout << "Subsrcribe to a location\n>";
                 std::cin >> input;
                 strcpy(client_message,input.c_str());
+                // send request
                 write(sock, &client_message, strlen(client_message));
+                // send location to confirm
+                memset(server_message,0,2000);
                 recv(sock, server_message, sizeof(server_message), 0);
                 std::cout << server_message;
                 break;
             case '2':
                 std::cout << "Unsub from location\n";
+                std::cin >> input;
+                strcpy(client_message,input.c_str());
+                // send request
+                write(sock, &client_message, strlen(client_message));
+                // send location to confirm
+                memset(server_message,0,2000);
+                recv(sock, server_message, sizeof(server_message), 0);
+                std::cout << server_message << std::endl;
                 break;
             case '3':
                 std::cout << "Display locations subbed\n";
+                memset(server_message,0,2000);
+                recv(sock, server_message, sizeof(server_message), 0);
+                std::cout << server_message << std::endl;
                 break;
             case '4':
                 std::cout << "Send message to location\n";

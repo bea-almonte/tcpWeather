@@ -86,15 +86,80 @@ int tcpServer::LocationExists(std::string locationName) {
     return -1;
 }
 
+int tcpServer::FindPos(std::string inputName) {
+    for (long unsigned int i = 0; i < users.size(); i++) {
+        if (inputName == users.at(i).username) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void tcpServer::SubscribeUser(std::string locationName, User tempUser) {
+    std::cout << "Location request: " << locationName << std::endl;
+    Location tempLocation;
+    if (LocationExists(locationName) < 0) {
+        tempLocation.locName = locationName;
+        locations.push_back(tempLocation);
+        locations.at(LocationExists(locationName)).subscribeUser(tempUser.username, tempUser.sock);
+    } else {
+        locations.at(LocationExists(locationName)).subscribeUser(tempUser.username, tempUser.sock);
+    }
+    locations.at(LocationExists(locationName)).DisplayUsers();
+    tempUser.SuscribeLocation(locationName);
+    // send 400
+
+    userMtx.lock();
+    users.at(FindPos(tempUser.username)) = tempUser;
+    tempUser.SendLocations();
+    userMtx.unlock();
+    DisplayLocations();
+}
+
+void tcpServer::UnsubscribeUser(std::string locationName, User tempUser) {
+    std::cout << "Location request: " << locationName << std::endl;
+    char server_message[2000];
+    Location tempLocation;
+    if (LocationExists(locationName) < 0) {
+        std::cout << "Location doesn't exist.\n";
+        strcpy(server_message,"Loc doesn't exist\n");
+        write(tempUser.sock,&server_message,strlen(server_message));
+    } else {
+        locations.at(LocationExists(locationName)).unsubscribeUser(tempUser.username);
+        tempUser.UnuscribeLocation(locationName);
+        strcpy(server_message,locationName.c_str());
+        write(tempUser.sock,&server_message,strlen(server_message));
+    }
+    // send 400
+    userMtx.lock();
+    users.at(FindPos(tempUser.username)) = tempUser;
+    tempUser.SendLocations();
+    userMtx.unlock();
+    DisplayLocations();
+    
+}
+
+void tcpServer::DisplayLocations() {
+    std::cout << "===\nLocs\n";
+    for (long unsigned int i = 0; i < locations.size(); i++) {
+        std::cout << locations.at(i).locName << ": ";
+  /*       for (long unsigned int i = 0; i < locations.at(i).nameSubbed.size(); i++) {
+        std::cout << locations.at(i).locName << " ";
+        }
+        std::cout << std::endl; */
+    }
+    std::cout <<"\n====\n";
+}
+
 void tcpServer::ExecuteCommands(User tempUser) {
-    char server_message[2000], client_message[2000];
+    char client_message[2000];//,server_message[2000], 
     int received = 0;
-    int pos = -1;
     char code = 'x';
     bool exitUser = false;
     Location tempLocation;
     std::string input;
     while (!exitUser) {
+        tempUser = users.at(FindPos(tempUser.username));
         memset(client_message,0,2000);
         received = recv(tempUser.sock, client_message, sizeof(client_message), 0);
         std::string request(client_message);
@@ -123,24 +188,17 @@ void tcpServer::ExecuteCommands(User tempUser) {
                 // recv()
                 recv(tempUser.sock, client_message, sizeof(client_message), 0);
                 input = ConvertoString(client_message);
-                // sub()
-                std::cout << "Location request: " << input << std::endl;
-                if (LocationExists(input) < 0) {
-                    tempLocation.locName = input;
-                    locations.push_back(tempLocation);
-                    locations.at(LocationExists(input)).subscribeUser(tempUser.username, tempUser.sock);
-                } else {
-                    locations.at(LocationExists(input)).subscribeUser(tempUser.username, tempUser.sock);
-                }
-                locations.at(LocationExists(input)).DisplayUsers();
-                tempUser.SuscribeLocation(input);
-                // send 400
-                tempUser.SendLocations();
+                SubscribeUser(input,tempUser);
+
                 break;
             case '2':
                 std::cout << "Unsub from location\n";
                 // send code 1
                 // client sends
+                recv(tempUser.sock, client_message, sizeof(client_message), 0);
+                input = ConvertoString(client_message);
+
+                UnsubscribeUser(input,tempUser);
                 // recv()
                 // unsub()
                 // send 400
@@ -150,6 +208,8 @@ void tcpServer::ExecuteCommands(User tempUser) {
                 // send code 
                 // client recv()
                 // displayloc(locations vec);
+                tempUser.SendLocations();
+            
                 break;
             case '4':
                 std::cout << "Send message to location\n";

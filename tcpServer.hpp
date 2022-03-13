@@ -35,6 +35,10 @@ class tcpServer {
     void ExecuteCommands(User tempUser);
     std::string ConvertoString(char message[]);
     int LocationExists(std::string locationName);
+    void SubscribeUser(std::string locationName, User tempUser);
+    void UnsubscribeUser(std::string locationName, User tempUser);
+    void DisplayLocations();
+    int FindPos(std::string inputName);
 
 };
 

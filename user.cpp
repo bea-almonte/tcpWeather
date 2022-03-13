@@ -1,5 +1,19 @@
 #include "user.hpp"
 
+User& User::operator=(const User& createdUser) {
+    if (this != &createdUser) {
+        this->username = createdUser.username;
+        this->password = createdUser.password;
+        this->locations.resize(createdUser.locations.size());
+        for (long unsigned int i = 0;i < createdUser.locations.size(); i++) {
+            this->locations.at(i) = createdUser.locations.at(i);
+        }
+        this->sock = createdUser.sock;
+        this->exitUser = createdUser.exitUser;
+    }
+    return *this;
+}
+
 bool User::Login() {
     int bytesRec, code, pos;
     char server_message[2000], client_message[2000];
@@ -131,10 +145,12 @@ void User::RegisterUser(std::string userInput, std::string userPass) {
 }
 
 void User::SendLocations() {
-    char server_message[2000], client_message[2000];
-    std::string allLocations;
+    char server_message[2000];// client_message[2000];
+    std::string allLocations = "Test: ";
+    std::cout << "size: " << locations.size() << std::endl;
     for (long unsigned int i = 0; i < locations.size(); i++) {
-        allLocations += locations.at(i) + " ";
+        allLocations.append(" ");
+        allLocations.append(locations.at(i));
     }
     std::cout << allLocations << std::endl;
     strcpy(server_message,allLocations.c_str());
