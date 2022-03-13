@@ -2,6 +2,7 @@
 
 bool User::Login() {
     int bytesRec, code, pos;
+    char server_message[2000], client_message[2000];
     exitUser = false;
     std::string inputName, inputPass;
 
@@ -38,6 +39,10 @@ bool User::Login() {
     password = inputPass;
 
 
+    // 100 succesful login
+    // 102 right username, wrong pass
+    // 103 user does not exist
+    // TODO: 104 user already logged in
     if (code == 1) {
         // check username
         if (CheckUsername(username) >= 0) {
@@ -76,24 +81,70 @@ bool User::Login() {
 
 }
 
-void User::WaitRecv() {
+void User::WaitRecv(int socket) {
+    char server_message[2000], client_message[2000];
     int received = 0;
+    int pos = -1;
+    char code = 'x';
     while (!exitUser) {
         memset(client_message,0,2000);
-        received = recv(sock, client_message, sizeof(client_message), 0);
-        printf("Client's response: %s\n",client_message);
+        received = recv(socket, client_message, sizeof(client_message), 0);
+        if (received <= 0) {
+            std::cout << "Error: exiting user\n";
+            exitUser = true;
+            break;
+        }
+        std::string request(client_message);
+        std::cout << "uhm: " << received << std::endl;
+        std::cout << "string: " << request << std::endl;
+        code = request[0];
+        std::cout << "g\n";
+        std::cout << username << "'s request: " << code << std::endl;
+        
         if (received == 0) {
             break;
         }
-        std::cout << "Bytes: " << sizeof(client_message) << std::endl;
+        switch (code) {
+            case '0':
+                std::cout << "Exiting...\n";
+                exitUser = true;
+                break;
+            case '1':
+                std::cout << "Subsrcribe to a location\n";
+                break;
+            case '2':
+                std::cout << "Unsub from location\n";
+                break;
+            case '3':
+                std::cout << "Display locations subbed\n";
+                break;
+            case '4':
+                std::cout << "Send message to location\n";
+                break;
+            case '5':
+                std::cout << "See all online users\n";
+                break;
+            case '6':
+                std::cout << "Send message to user\n";
+                break;
+            case '7':
+                std::cout << "Display last 10 messages\n";
+                break;
+            case '8':
+                std::cout << "Change password\n";
+                break;
+            default:
+                std::cout << "Invalid Request\n";
+                // send error msg
+                break;
+
+        }
+        //std::cout << "Bytes: " << received << std::endl;
+
         std::string test(client_message);
         if (test == "exit") {
             exitUser = true;
         }
-        /* //memset(client_message,0,2000);
-        ///std::cin >> msg;
-        sprintf(client_message,msg.c_str());
-        write(sock, &client_message, sizeof(client_message)); */
     }
 }
 void User::SetUsername(std::string userInput) {

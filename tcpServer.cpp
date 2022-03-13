@@ -71,6 +71,11 @@ void tcpServer::DisplayOnline() {
         std::cout << "User: " << users.at(i).username << std::endl;
     }
 }
+
+void tcpServer::ExecuteCommands(User tempUser) {
+    tempUser.WaitRecv(tempUser.sock);
+}
+
 void tcpServer::Process(int sock) {
     User tempUser;
     tempUser.sock = sock;
@@ -102,7 +107,7 @@ void tcpServer::Process(int sock) {
     userMtx.unlock();
     
 
-    tempUser.WaitRecv(tempUser.sock);
+    ExecuteCommands(tempUser);
   
     userMtx.lock();
     LogoutUser(tempUser.username);

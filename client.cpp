@@ -19,7 +19,10 @@ int main(int argc, char ** argv)
 
     // create thread to listen to server
     // send commands to server
-    Client.SendInput();
+    if (!Client.endProgram) {
+        Client.SendInput();
+    }
+    
 
     
     /* close socket */

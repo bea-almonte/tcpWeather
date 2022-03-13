@@ -15,7 +15,7 @@
 #include <thread> // thread()
 #include <mutex> // lock(), unlock()
 #include "user.hpp"
-
+#include "location.hpp"
 
 #ifndef TCPSERVER_HPP
 #define TCPSERVER_HPP
@@ -24,6 +24,7 @@ class tcpServer {
     public:
     std::mutex userMtx;
     std::vector<User> users;
+    std::vector<Location> locations;
     int serverSock;
     int totalUsers;
     void Process(int sock);
@@ -31,6 +32,7 @@ class tcpServer {
     void AcceptClients();
     void LogoutUser(std::string userDel);
     void DisplayOnline();
+    void ExecuteCommands(User tempUser);
 };
 
 #endif

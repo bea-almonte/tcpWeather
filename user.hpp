@@ -23,7 +23,6 @@ class User {
         std::string password;
         std::string messages[5];
         std::string locations[5];
-        char server_message[2000], client_message[2000];
         int filePos; // user's position on username.txt and file.txt
         int sock; // socket
         struct sockaddr address; // address of client
@@ -38,8 +37,9 @@ class User {
         void SendMessage(std::string location);
         void SuscribeLocation(std::string location);
         void UnuscribeLocation(std::string location);
-        void WaitRecv();
+        void WaitRecv(int socket);
         void ChooseFunc();
+        bool UniqueUser();
         bool exitUser;
 };
 

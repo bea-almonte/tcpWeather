@@ -130,9 +130,8 @@ void tcpClient::SendInput() {
         std::cout << ">";
         std::cin >> input;
         sockMtx.unlock();
-        if (input == "exit") {
+        if (input == "0") {
             strcpy(client_message,input.c_str());
-
             write(sock, &client_message, strlen(client_message));
             endProgram = true;
             break;
@@ -168,6 +167,6 @@ void tcpClient::ReceiveMsg() {
     } */
     memset(client_message,0,2000);
     std::cout << "Thread created.\n";
-    sprintf(client_message,"From Created Thread.\n");
-    write(sock, &client_message, strlen(client_message));
+    //sprintf(client_message,"From Created Thread.\n");
+    //write(sock, &client_message, strlen(client_message));
 }
