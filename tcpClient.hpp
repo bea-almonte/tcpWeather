@@ -7,6 +7,7 @@
 #include <iostream>
 #include <pthread.h>
 #include <thread>
+#include <mutex>
 
 class tcpClient {
     public:
@@ -16,7 +17,7 @@ class tcpClient {
     int sock;
     char server_message[2000];
     char client_message[2000];
-    struct sockaddr_in address;
+    std::mutex sockMtx;
     void SetPort(int userPort);
     void ConnectToServer();
     void Login();
@@ -24,6 +25,6 @@ class tcpClient {
     void SendInput();
     void CloseSocket();
     void OutputMenu();
-    void Receive(); // takes messages from server and outputs them
+    void ReceiveMsg(); // takes messages from server and outputs them
     tcpClient();
 };

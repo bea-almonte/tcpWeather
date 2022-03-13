@@ -12,7 +12,7 @@ void tcpClient::SetPort(int userPort) {
 void tcpClient::ConnectToServer() {
     /* create socket */
     sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
+    struct sockaddr_in address;
     if (sock <= 0)
     {
         std::cout << "Error: cannot create socket " << sock << std::endl;
@@ -23,7 +23,7 @@ void tcpClient::ConnectToServer() {
     address.sin_port = htons(port);
     address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-
+    std::cout << "sock: " << sock;
     if (connect(sock, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
         std::cout << "Unable to connect\n";
@@ -39,6 +39,7 @@ void tcpClient::Login() {
     
     std::cout << "\nWelcome!\n";
     
+
     while (!loggedIn) {
         LoginOutput();
         std::cin >> input;
@@ -120,16 +121,18 @@ void tcpClient::LoginOutput() {
 void tcpClient::SendInput() {
     bool exitUser = false;
     std::string input;
-    std::thread thread_(&tcpClient::Receive, this);
-
+    std::thread thread_(&tcpClient::ReceiveMsg, this);
     thread_.detach();
+    
     while (!exitUser) {
         OutputMenu();
         memset(client_message,0,2000);
-        //std::cout << "Client> ";
+        std::cout << ">";
         std::cin >> input;
+        sockMtx.unlock();
         if (input == "exit") {
             strcpy(client_message,input.c_str());
+
             write(sock, &client_message, strlen(client_message));
             endProgram = true;
             break;
@@ -137,6 +140,7 @@ void tcpClient::SendInput() {
             strcpy(client_message,input.c_str());
             write(sock, &client_message, strlen(client_message));
         }
+        sockMtx.unlock();
     }
 }
 void tcpClient::CloseSocket() {
@@ -155,7 +159,13 @@ void tcpClient::OutputMenu() {
     std::cout << " 0 Logout\n";
 }
 
-void tcpClient::Receive() {
+void tcpClient::ReceiveMsg() {
+/*     while (!endProgram) {
+        memset(client_message,0,2000);
+        std::cout << "Thread created.\n";
+        sprintf(client_message,"From Created Thread.\n");
+        write(sock, &client_message, strlen(client_message));
+    } */
     memset(client_message,0,2000);
     std::cout << "Thread created.\n";
     sprintf(client_message,"From Created Thread.\n");
