@@ -40,11 +40,26 @@ bool User::Login() {
 
     if (code == 1) {
         // check username
-
+        if (CheckUsername(username) >= 0) {
+            if (CheckPassword(CheckUsername(username),password)) {
+                //std::cout << "This should be...\n";
+                sprintf(server_message,"100");
+                write(sock, &server_message, strlen(server_message));
+                return true;
+            } else {
+                sprintf(server_message,"102");
+                write(sock, &server_message, strlen(server_message));
+                return false;
+            }
+            
+        } else {
+            sprintf(server_message,"101");
+            write(sock, &server_message, strlen(server_message));
+            return false;
+        }
         // check password
-        sprintf(server_message,"100");
-        write(sock, &server_message, strlen(server_message));
-        return true;
+        
+        
     } else if (code == 2) {
         // register
         RegisterUser(username, password);
@@ -72,11 +87,31 @@ int User::CheckUsername(std::string userInput) {
     int matchPos = 0;
     inUsers.open("usernames.txt");
     while (inUsers >> fileUserName){
-
+        matchPos++;
+        if (fileUserName == userInput) {
+            return matchPos;
+        }
     }
+    inUsers.close();
     return -1;
 }
+// check 
+bool User::CheckPassword(int userPos, std::string inputPass) {
+    std::ifstream inPass;
+    std::string passTest;
+    int passwordPos = 0;
+    
+    inPass.open("passwords.txt");
 
+    while (inPass >> passTest){
+        passwordPos++;
+        if (passTest == inputPass && userPos == passwordPos) {
+
+            return true;;
+        }
+    }
+    return false;
+}
 void User::RegisterUser(std::string userInput, std::string userPass) {
     std::ofstream outUsers;
     std::ofstream outPass;

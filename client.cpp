@@ -85,7 +85,7 @@ void Login(int sock) {
     std::string username;
     std::string password;
 
-    std::cout << "\nWelcome!\\n";
+    std::cout << "\nWelcome!\n";
     
     while (!loggedIn) {
         LoginOutput();
@@ -106,7 +106,7 @@ void Login(int sock) {
             // code username password
             sprintf(client_message,"1 %s %s",username.c_str(),password.c_str());
             std::cout << "Sending: " << client_message << std::endl;
-            sent = write(sock, &client_message, strlen(client_message)+1);
+            sent = write(sock, &client_message, strlen(client_message));
 
 
             // server sends status reponse message
@@ -114,9 +114,9 @@ void Login(int sock) {
             recv(sock, server_message, sizeof(server_message), 0);
             std::string test(server_message);
 
-            // 200 successful login
-            // 201 wrong password
-            // 202 wrong username
+            // 100 successful login
+            // 101 wrong username
+            // 102 wrong password
             
             if (test == "100") {
                 std::cout << "Succesfully Logged In.\n";
@@ -127,6 +127,7 @@ void Login(int sock) {
             } else if (test == "102") {
                 std::cout << "Incorrect Password.\n";
             } else {
+                std::cout << "RESPONSE: " << server_message << std::endl;
                 std::cout << "Bad server response.\n";
             }
 

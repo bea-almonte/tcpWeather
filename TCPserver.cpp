@@ -139,6 +139,7 @@ void * Process(void * ptr) {
     
     //delete[] buffer;
     
+    // pop back when disconnecting
     close(tempUser.sock);
     //users.erase(users.begin() + it);
     std::cout << "Connection Terminated.\n";
