@@ -139,6 +139,52 @@ void tcpClient::SendInput() {
             strcpy(client_message,input.c_str());
             write(sock, &client_message, strlen(client_message));
         }
+        strcpy(client_message,input.c_str());
+        std::string response;
+        switch (input[0]) {
+            case '0':
+                std::cout << "Exiting...\n";
+                write(sock, &client_message, strlen(client_message));
+                exitUser = true;
+                break;
+            case '1':
+                std::cout << "Subsrcribe to a location\n>";
+                std::cin >> input;
+                strcpy(client_message,input.c_str());
+                write(sock, &client_message, strlen(client_message));
+                recv(sock, server_message, sizeof(server_message), 0);
+                std::cout << server_message;
+                break;
+            case '2':
+                std::cout << "Unsub from location\n";
+                break;
+            case '3':
+                std::cout << "Display locations subbed\n";
+                break;
+            case '4':
+                std::cout << "Send message to location\n";
+                std::cout << "Feature not available yet.\n";
+                break;
+            case '5':
+                std::cout << "See all online users\n";
+                std::cout << "Feature not available yet.\n";
+                break;
+            case '6':
+                std::cout << "Send message to user\n";
+                std::cout << "Feature not available yet.\n";
+                break;
+            case '7':
+                std::cout << "Display last 10 messages\n";
+                std::cout << "Feature not available yet.\n";
+                break;
+            case '8':
+                std::cout << "Change password\n";
+                break;
+            default:
+                std::cout << "Invalid Request\n";
+                break;
+
+        }
         sockMtx.unlock();
     }
 }

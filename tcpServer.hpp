@@ -33,6 +33,9 @@ class tcpServer {
     void LogoutUser(std::string userDel);
     void DisplayOnline();
     void ExecuteCommands(User tempUser);
+    std::string ConvertoString(char message[]);
+    int LocationExists(std::string locationName);
+
 };
 
 #endif
