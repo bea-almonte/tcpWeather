@@ -108,6 +108,7 @@ void * Process(void * ptr) {
     //char clientStr[2000], serverStr[2000];
     int sock = 0; // iterator
     sock = *(int*)ptr;
+    int userPos = 0;
     User tempUser;
     // clear buffer
     tempUser.sock = sock;
@@ -124,9 +125,10 @@ void * Process(void * ptr) {
     if (tempUser.exitUser){
         close(tempUser.sock);
         //users.erase(users.begin() + it);
-        std::cout << "Connection Terminated.\n";
+        std::cout << "Connection Terminated In Login.\n";
         pthread_exit(0);
     }
+    userPos = users.size();
     users.push_back(tempUser);
     totalUsers++;
 
@@ -138,10 +140,14 @@ void * Process(void * ptr) {
     // set password
     
     //delete[] buffer;
-    
-    // pop back when disconnecting
+    users[userPos].WaitRecv();
+    // erase when disconnecting
+    users.erase(users.begin() + userPos);
     close(tempUser.sock);
     //users.erase(users.begin() + it);
     std::cout << "Connection Terminated.\n";
+    for (int i = 0; i < users.size(); i++) {
+        std::cout << "Users logged: " << users[i].username << std::endl;
+    }
     pthread_exit(0);
 }

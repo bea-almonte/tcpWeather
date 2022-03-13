@@ -76,6 +76,26 @@ bool User::Login() {
 
 }
 
+void User::WaitRecv() {
+    int received = 0;
+    while (!exitUser) {
+        memset(client_message,0,2000);
+        received = recv(sock, client_message, sizeof(client_message), 0);
+        printf("Client's response: %s\n",client_message);
+        if (received == 0) {
+            break;
+        }
+        std::cout << "Bytes: " << sizeof(client_message) << std::endl;
+        std::string test(client_message);
+        if (test == "exit") {
+            exitUser = true;
+        }
+        /* //memset(client_message,0,2000);
+        ///std::cin >> msg;
+        sprintf(client_message,msg.c_str());
+        write(sock, &client_message, sizeof(client_message)); */
+    }
+}
 void User::SetUsername(std::string userInput) {
 
 }
@@ -88,6 +108,7 @@ int User::CheckUsername(std::string userInput) {
     inUsers.open("usernames.txt");
     while (inUsers >> fileUserName){
         matchPos++;
+        filePos = matchPos;
         if (fileUserName == userInput) {
             return matchPos;
         }
@@ -106,7 +127,6 @@ bool User::CheckPassword(int userPos, std::string inputPass) {
     while (inPass >> passTest){
         passwordPos++;
         if (passTest == inputPass && userPos == passwordPos) {
-
             return true;;
         }
     }

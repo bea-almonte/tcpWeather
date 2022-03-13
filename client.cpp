@@ -11,6 +11,7 @@ void * Receive(void * ptr); // receive messages
 void Login(int sock);
 void LoginOutput();
 void OutputMenu();
+void SendInput(int sock);
 bool endProgram = false;
 
 int main(int argc, char ** argv)
@@ -56,7 +57,7 @@ int main(int argc, char ** argv)
     /* pthread_create(&thread,0,Receive, &sock);
     pthread_detach(thread); */
 
-
+    SendInput(sock);
 /*     while (!endProgram) {
         // output options
         // select option
@@ -69,11 +70,34 @@ int main(int argc, char ** argv)
     return 0;
 }
 
+void OutputMenu() {
+    
+}
+
 void LoginOutput() {
     std::cout << "\tPress 1 to Login\n";
     std::cout << "\tPress 2 to Register\n";
     std::cout << "\tType 'exit' to Quit\n";
 
+}
+
+void SendInput(int sock) {
+    bool exitUser = false;
+    char client_message[2000];
+    std::string input;
+    while (!exitUser) {
+        memset(client_message,0,2000);
+        std::cout << "Client> ";
+        std::cin >> input;
+        if (input == "exit") {
+            sprintf(client_message,input.c_str());
+            write(sock, &client_message, strlen(client_message));
+            break;
+        } else {
+            sprintf(client_message,input.c_str());
+            write(sock, &client_message, strlen(client_message));
+        }
+    }
 }
 
 void Login(int sock) {
