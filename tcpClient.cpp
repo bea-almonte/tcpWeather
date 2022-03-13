@@ -36,7 +36,7 @@ void tcpClient::Login() {
     int sent = 0;
     std::string usernameInput;
     std::string password;
-
+    
     std::cout << "\nWelcome!\n";
     
     while (!loggedIn) {
@@ -120,6 +120,9 @@ void tcpClient::LoginOutput() {
 void tcpClient::SendInput() {
     bool exitUser = false;
     std::string input;
+    std::thread thread_(&tcpClient::Receive, this);
+
+    thread_.detach();
     while (!exitUser) {
         OutputMenu();
         memset(client_message,0,2000);
@@ -153,7 +156,8 @@ void tcpClient::OutputMenu() {
 }
 
 void tcpClient::Receive() {
+    memset(client_message,0,2000);
     std::cout << "Thread created.\n";
     sprintf(client_message,"From Created Thread.\n");
-
+    write(sock, &client_message, strlen(client_message));
 }
