@@ -30,15 +30,13 @@ class User {
         void SetUsername(std::string userInput);
         bool Login();
         int CheckUsername(std::string userInput); // check if input is in file
-        bool CheckPassword(int userPos, std::string inputPass);
-        void RegisterUser(std::string userInput, std::string userPass);
-        void SendLocations();
-        void SendMessage(std::string location);
-        void SuscribeLocation(std::string location);
-        void UnuscribeLocation(std::string location);
-        void WaitRecv(int socket);
-        void ChooseFunc();
-        bool UniqueUser();
+        bool CheckPassword(int userPos, std::string inputPass); // check if pass is correct
+        bool RegisterUser(std::string userInput, std::string userPass); // register user
+        void SendLocations();// send locations to client
+        void SendMessage(std::string location); // for part 2
+        void SuscribeLocation(std::string location);// add location to local location vector
+        void UnuscribeLocation(std::string location);// remove location from location vector
+        bool AlreadyRegistered(std::string userInput); // check if username in file
         bool exitUser;
         User& operator=(const User& createdUser);
 };

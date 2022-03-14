@@ -12,7 +12,9 @@ int main(int argc, char ** argv)
     }
     
     // Connect to server using input port
-    Client.ConnectToServer();
+    if (!Client.ConnectToServer()) {
+        return -1;
+    }
     
     // login
     Client.Login();
@@ -22,8 +24,6 @@ int main(int argc, char ** argv)
     if (!Client.endProgram) {
         Client.SendInput();
     }
-    
-
     
     /* close socket */
     Client.CloseSocket();

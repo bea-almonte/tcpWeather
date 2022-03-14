@@ -9,13 +9,14 @@ void tcpClient::SetPort(int userPort) {
     port = userPort;
 }
 
-void tcpClient::ConnectToServer() {
+bool tcpClient::ConnectToServer() {
     /* create socket */
     sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     struct sockaddr_in address;
     if (sock <= 0)
     {
         std::cout << "Error: cannot create socket " << sock << std::endl;
+        return false;
     }
 
     /* connect to server */
@@ -23,11 +24,12 @@ void tcpClient::ConnectToServer() {
     address.sin_port = htons(port);
     address.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-    std::cout << "sock: " << sock;
     if (connect(sock, (struct sockaddr *)&address, sizeof(address)) < 0)
     {
         std::cout << "Unable to connect\n";
+        return false;
     }
+    return true;
 }
 
 void tcpClient::Login() {
@@ -48,6 +50,7 @@ void tcpClient::Login() {
         if (input == "exit") {
             sprintf(client_message,"3");
             sent = write(sock, &client_message, strlen(client_message)+1);
+            
             endProgram = true;
             break;
         } else if (input == "1") {
@@ -61,29 +64,33 @@ void tcpClient::Login() {
 
             // code username password
             sprintf(client_message,"1 %s %s",usernameInput.c_str(),password.c_str());
-            std::cout << "Sending: " << client_message << std::endl;
+            //std::cout << "Sending: " << client_message << std::endl;
             sent = write(sock, &client_message, strlen(client_message));
 
-
             // server sends status reponse message
-            std::cout << sent << std::endl;
+            //std::cout << sent << std::endl;
+            if (sent <= 0) {
+               // std::cout <<"What\n";
+                continue;
+            }
             recv(sock, server_message, sizeof(server_message), 0);
             std::string test(server_message);
-
+            
             // 100 successful login
             // 101 wrong username
             // 102 wrong password
-            
+            // 103 already logged in
             if (test == "100") {
                 std::cout << "Succesfully Logged In.\n";
                 loggedIn = true;
             } else if (test == "101") {
-                std::cout << "RESPONSE: " << server_message << std::endl;
                 std::cout << "Username not found.\n";
             } else if (test == "102") {
                 std::cout << "Incorrect Password.\n";
+            } else if (test == "103") {
+                std::cout << "Account already logged in.\n";
             } else {
-                std::cout << "RESPONSE: " << server_message << std::endl;
+                //std::cout << "RESPONSE: " << server_message << std::endl;
                 std::cout << "Bad server response.\n";
             }
 
@@ -96,14 +103,16 @@ void tcpClient::Login() {
 
             // send code username password
             sprintf(client_message,"2 %s %s",usernameInput.c_str(),password.c_str());
-            std::cout << client_message;
             write(sock, &client_message, strlen(client_message));
+
             // response from server
             recv(sock, server_message, sizeof(server_message), 0);
             std::string test(server_message);
 
             if (test == "200") {
                 std::cout << "Succesfully Registered.\n";
+            } else if (test == "201") {
+                std::cout << "Already Registered.\n";
             } else {
                 std::cout << "Bad server response.\n";
             }
@@ -129,7 +138,7 @@ void tcpClient::SendInput() {
         memset(client_message,0,2000);
         std::cout << ">";
         std::cin >> input;
-        sockMtx.unlock();
+        //sockMtx.unlock();
         if (input == "0") {
             strcpy(client_message,input.c_str());
             write(sock, &client_message, strlen(client_message));
@@ -148,7 +157,7 @@ void tcpClient::SendInput() {
                 exitUser = true;
                 break;
             case '1':
-                std::cout << "Subsrcribe to a location\n>";
+                std::cout << "Enter location to subscribe:\n>";
                 std::cin >> input;
                 strcpy(client_message,input.c_str());
                 // send request
@@ -156,10 +165,12 @@ void tcpClient::SendInput() {
                 // send location to confirm
                 memset(server_message,0,2000);
                 recv(sock, server_message, sizeof(server_message), 0);
+                std::cout << "==================================\n";
                 std::cout << server_message;
+                std::cout << "==================================\n";
                 break;
             case '2':
-                std::cout << "Unsub from location\n";
+                std::cout << "Enter location to unsubscribe from:\n>";
                 std::cin >> input;
                 strcpy(client_message,input.c_str());
                 // send request
@@ -167,32 +178,35 @@ void tcpClient::SendInput() {
                 // send location to confirm
                 memset(server_message,0,2000);
                 recv(sock, server_message, sizeof(server_message), 0);
+                std::cout << "==================================\n";
                 std::cout << server_message << std::endl;
+                std::cout << "==================================\n";
                 break;
             case '3':
-                std::cout << "Display locations subbed\n";
                 memset(server_message,0,2000);
                 recv(sock, server_message, sizeof(server_message), 0);
+                std::cout << "==================================\n";
                 std::cout << server_message << std::endl;
+                std::cout << "==================================\n";
                 break;
             case '4':
-                std::cout << "Send message to location\n";
-                std::cout << "Feature not available yet.\n";
+                std::cout << "Send message to location ";
+                std::cout << "feature not available yet.\n";
                 break;
             case '5':
-                std::cout << "See all online users\n";
-                std::cout << "Feature not available yet.\n";
+                std::cout << "See all online users ";
+                std::cout << "feature not available yet.\n";
                 break;
             case '6':
-                std::cout << "Send message to user\n";
-                std::cout << "Feature not available yet.\n";
+                std::cout << "Send message to user ";
+                std::cout << "feature not available yet.\n";
                 break;
             case '7':
-                std::cout << "Display last 10 messages\n";
-                std::cout << "Feature not available yet.\n";
+                std::cout << "Display last 10 messages ";
+                std::cout << "feature not available yet.\n";
                 break;
             case '8':
-                std::cout << "Change password\n";
+                std::cout << "Enter new password:\n>";
                 std::cin >> input;
                 strcpy(client_message,input.c_str());
                 // send request
@@ -204,7 +218,7 @@ void tcpClient::SendInput() {
                 break;
 
         }
-        sockMtx.unlock();
+        //sockMtx.unlock();
     }
 }
 void tcpClient::CloseSocket() {
@@ -223,6 +237,7 @@ void tcpClient::OutputMenu() {
     std::cout << " 0 Logout\n";
 }
 
+// TODO: for next part
 void tcpClient::ReceiveMsg() {
 /*     while (!endProgram) {
         memset(client_message,0,2000);
@@ -231,7 +246,7 @@ void tcpClient::ReceiveMsg() {
         write(sock, &client_message, strlen(client_message));
     } */
     memset(client_message,0,2000);
-    std::cout << "Thread created.\n";
+    //std::cout << "Thread created.\n";
     //sprintf(client_message,"From Created Thread.\n");
     //write(sock, &client_message, strlen(client_message));
 }

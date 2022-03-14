@@ -1,5 +1,7 @@
 #include "tcpServer.hpp"
 #include <errno.h>
+
+// Sets port, creates and binds socket
 void tcpServer::CreateSocket(int portNumber) {
     struct sockaddr_in address;
 
@@ -14,6 +16,7 @@ void tcpServer::CreateSocket(int portNumber) {
     serverSock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (serverSock <= 0) {
         std::cerr << "Error cannot create socket.\n";
+        return;
     } 
 
     // bind socket to port
@@ -24,52 +27,56 @@ void tcpServer::CreateSocket(int portNumber) {
 
     if (bind(serverSock, (struct sockaddr*)&address,sizeof(struct sockaddr_in)) < 0) {
         std::cerr << "Error: cannot bind socket to port.\n";
+        return;
     }
-
-
 
 }
 
-void tcpServer::AcceptClients() {
+// marks socket as passive, start accepting clients
+// when a client is accepted, a thread is created for that client
+bool tcpServer::AcceptClients() {
     int clientSock = -32;
     struct sockaddr address; // address of client
     unsigned int addr_len;   // length of address
-    if (listen(serverSock,5) < 0) {
+    if (listen(serverSock,20) < 0) {
         std::cerr << "Error: Cannot listen on port.\n";
+        return false;
     }
 
     std::cout << "Server ready and listening.\n";
     while (true) {
         // accept connection
         clientSock = accept(serverSock, &address, &addr_len);
-        std::cout << "servSock: " << serverSock << std::endl;
-        std::cout << "userSock: " << clientSock << std::endl;
+
         if (clientSock <= 0) {
             perror("Error is: ");
             std::cout<< "Socket couldn't connect.\n";
-            continue;
+            return false;
         }
-        std::cout << "Sock b4 thread: " << clientSock << std::endl;
-        std::cout << "\n===============================\n";
-        std::cout << "Created thread.\n";
-        
+        //std::cout << "Created thread.\n";
+        // creates thread and detaches
         std::thread NewClient(&tcpServer::Process, this, clientSock);
         NewClient.detach();
     }
+    return true;
 }
 
+// logout user, remove from vector, unsubscribe from locations
 void tcpServer::LogoutUser(std::string userDel) {
-    // unsubscribe
+    // find position of user to be deleted
     User tempUser;
     tempUser = users.at(FindPos(userDel));
+
+    // unsubscribe from location
     for (long unsigned int i = 0; i < locations.size(); i++) {
         locations.at(i).unsubscribeUser(userDel);
     }
 
-    for (long unsigned int i = 0; i < locations.size(); i++) {
+    /* for (long unsigned int i = 0; i < locations.size(); i++) {
         locations.at(i).DisplayUsers();
-    }
+    } */
 
+    // erase from vector
     for (long unsigned int i = 0; i < users.size(); i++) {
         if (userDel == users.at(i).username) {
             users.erase(users.begin() + i);
@@ -77,17 +84,20 @@ void tcpServer::LogoutUser(std::string userDel) {
     }
 }
 
+// displays online users
 void tcpServer::DisplayOnline() {
     for (long unsigned int i = 0; i < users.size(); i++) {
-        std::cout << "User: " << users.at(i).username << std::endl;
+        std::cout << users.at(i).sock << " | " << users.at(i).username << std::endl;
     }
 }
 
+// convert char to string
 std::string tcpServer::ConvertoString(char message[]) {
     std::string strMsg(message);
     return strMsg;
 }
 
+// check if location exists in vector
 int tcpServer::LocationExists(std::string locationName) {
     for (unsigned int long i = 0; i < locations.size(); i++) {
         if (locations.at(i).locName == locationName) {
@@ -97,6 +107,8 @@ int tcpServer::LocationExists(std::string locationName) {
     return -1;
 }
 
+// Find the position of a user in the vector
+// returns -1 if user is not online
 int tcpServer::FindPos(std::string inputName) {
     for (long unsigned int i = 0; i < users.size(); i++) {
         if (inputName == users.at(i).username) {
@@ -106,52 +118,70 @@ int tcpServer::FindPos(std::string inputName) {
     return -1;
 }
 
+// subscribe user to a location
+// if location is already active, subscribe user to location
+// else create location, and subscribe user to location
+// update the user vector
 void tcpServer::SubscribeUser(std::string locationName, User tempUser) {
-    std::cout << "Location request: " << locationName << std::endl;
     Location tempLocation;
+    char server_message[2000];
+    locMtx.lock();
     if (LocationExists(locationName) < 0) {
         tempLocation.locName = locationName;
         locations.push_back(tempLocation);
-        locations.at(LocationExists(locationName)).subscribeUser(tempUser.username, tempUser.sock);
+        if (locations.at(LocationExists(locationName)).subscribeUser(tempUser.username, tempUser.sock)) {
+            sprintf(server_message,"You are successfully subscribed to %s\n",locationName.c_str());
+            write(tempUser.sock,&server_message,strlen(server_message));
+        } else {
+            sprintf(server_message,"Oh no! You are already subscribed to %s\n",locationName.c_str());
+            write(tempUser.sock,&server_message,strlen(server_message));
+        }
+        
     } else {
-        locations.at(LocationExists(locationName)).subscribeUser(tempUser.username, tempUser.sock);
+        if (locations.at(LocationExists(locationName)).subscribeUser(tempUser.username, tempUser.sock)) {
+            sprintf(server_message,"You are successfully subscribed to %s\n",locationName.c_str());
+            write(tempUser.sock,&server_message,strlen(server_message));
+        } else {
+            sprintf(server_message,"Oh no! You are already subscribed to %s\n",locationName.c_str());
+            write(tempUser.sock,&server_message,strlen(server_message));
+        }
     }
-    locations.at(LocationExists(locationName)).DisplayUsers();
+    locMtx.unlock();
+    //locations.at(LocationExists(locationName)).DisplayUsers();
     tempUser.SuscribeLocation(locationName);
     // send 400
 
     userMtx.lock();
     users.at(FindPos(tempUser.username)) = tempUser;
-    tempUser.SendLocations();
     userMtx.unlock();
-    DisplayLocations();
 }
 
+// unsubscribes user from location
 void tcpServer::UnsubscribeUser(std::string locationName, User tempUser) {
-    std::cout << "Location request: " << locationName << std::endl;
     char server_message[2000];
     Location tempLocation;
+    locMtx.lock();
     if (LocationExists(locationName) < 0) {
         std::cout << "Location doesn't exist.\n";
-        strcpy(server_message,"Loc doesn't exist\n");
+        strcpy(server_message,"Location doesn't exist\n");
         write(tempUser.sock,&server_message,strlen(server_message));
     } else {
         locations.at(LocationExists(locationName)).unsubscribeUser(tempUser.username);
         tempUser.UnuscribeLocation(locationName);
-        strcpy(server_message,locationName.c_str());
+        sprintf(server_message,"Removed %s from subscriptions", locationName.c_str());
         write(tempUser.sock,&server_message,strlen(server_message));
     }
-    // send 400
+    locMtx.unlock();
+
+    // update vector remove location
     userMtx.lock();
     users.at(FindPos(tempUser.username)) = tempUser;
-    tempUser.SendLocations();
     userMtx.unlock();
     DisplayLocations();
     
 }
 
 void tcpServer::DisplayLocations() {
-    std::cout << "===\nLocs\n";
     for (long unsigned int i = 0; i < locations.size(); i++) {
         std::cout << locations.at(i).locName << ": ";
   /*       for (long unsigned int i = 0; i < locations.at(i).nameSubbed.size(); i++) {
@@ -159,7 +189,6 @@ void tcpServer::DisplayLocations() {
         }
         std::cout << std::endl; */
     }
-    std::cout <<"\n====\n";
 }
 
 void tcpServer::ExecuteCommands(User tempUser) {
@@ -179,21 +208,22 @@ void tcpServer::ExecuteCommands(User tempUser) {
             exitUser = true;
             break;
         }
+        // only check first character
         code = request[0];
-        std::cout << tempUser.username << "'s request: " << code << std::endl;
+        std::cout << tempUser.username << ">" << code << std::endl;
         
         if (received == 0) {
             break;
         }
-        // 200 wait for request
-        // 400 sent response
+
+        // according to project specficiations
         switch (code) {
             case '0':
-                std::cout << "Exiting...\n";
+                //std::cout << "Exiting...\n";
                 exitUser = true;
                 break;
             case '1':
-                std::cout << "Subsrcribe to a location\n";
+                // std::cout << "Subsrcribe to a location\n";
                 // send code 1
                 // client sends
                 // recv()
@@ -203,7 +233,7 @@ void tcpServer::ExecuteCommands(User tempUser) {
 
                 break;
             case '2':
-                std::cout << "Unsub from location\n";
+                // std::cout << "Unsub from location\n";
                 // send code 1
                 // client sends
                 recv(tempUser.sock, client_message, sizeof(client_message), 0);
@@ -215,7 +245,7 @@ void tcpServer::ExecuteCommands(User tempUser) {
                 // send 400
                 break;
             case '3':
-                std::cout << "Display locations subbed\n";
+                // std::cout << "Display locations subbed\n";
                 // send code 
                 // client recv()
                 // displayloc(locations vec);
@@ -223,16 +253,16 @@ void tcpServer::ExecuteCommands(User tempUser) {
             
                 break;
             case '4':
-                std::cout << "Send message to location\n";
+                //std::cout << "Send message to location\n";
                 break;
             case '5':
-                std::cout << "See all online users\n";
+                //std::cout << "See all online users\n";
                 break;
             case '6':
-                std::cout << "Send message to user\n";
+                //std::cout << "Send message to user\n";
                 break;
             case '7':
-                std::cout << "Display last 10 messages\n";
+                //std::cout << "Display last 10 messages\n";
                 break;
             case '8':
                 std::cout << "Change password\n";
@@ -249,21 +279,18 @@ void tcpServer::ExecuteCommands(User tempUser) {
     }
 }
 
+// change password inside user vector
 void tcpServer::ChangePassword(std::string newPass, User tempUser) {
     std::string passwords;
-    userMtx.lock();
-    passwords.append(users.at(FindPos(tempUser.username)).password);
-    userMtx.unlock();
-
-    passwords.append(" | ");
-    passwords.append(tempUser.password);
-    passwords.append(" | ");
+    passwords = tempUser.password; // old pass
     tempUser.password = newPass;
+
     userMtx.lock();
     users.at(FindPos(tempUser.username)) = tempUser;
-    passwords.append(users.at(FindPos(tempUser.username)).password);
     userMtx.unlock();
-    std::cout << passwords << std::endl;
+
+    std::cout << users.at(FindPos(tempUser.username)).username << "'s password changed from " << passwords << " to "  << users.at(FindPos(tempUser.username)).password << std::endl;
+
 }
 
 void tcpServer::ChangePasswordFile(std::string newPass, std::string findUser) {
@@ -285,7 +312,7 @@ void tcpServer::ChangePasswordFile(std::string newPass, std::string findUser) {
         }
         posFound++;
     }
-    std::cout << "Pos: " <<posFound;
+
     inPass.close();
     // check findUser in usernames set to Posfound
     // when found then send until posFound
@@ -301,56 +328,80 @@ void tcpServer::ChangePasswordFile(std::string newPass, std::string findUser) {
     while (inPass >> temp) {
         outPass << temp << std::endl;
     }
-    std::cout << "Did it end\n";
+    std::cout << "\'passwords.txt\' updated.\n";
     inPass.close();
     outPass.close();
-    // cin >> temp
-    // when i = posFound, cout << newPass
-    // add another loop
 }
 
+// checks user vector if user is already logged in
+bool tcpServer::IsLoggedIn(std::string newUser) {
+    userMtx.lock();
+    for (long unsigned int i = 0; i < users.size(); i++) {
+        if (newUser == users.at(i).username) {
+            return true;
+        }
+    }
+    userMtx.unlock();
+    return false;
+}
+
+// A client thread
 void tcpServer::Process(int sock) {
     User tempUser;
+    char server_message[2000];
     tempUser.sock = sock;
-    // clear buffer
+    bool loggedIn = false;
 
-    std::cout << "Sock: " << tempUser.sock << std::endl;
-
-    //memset(buffer,0,4096);
+    std::cout << "Client connected to " << tempUser.sock << std::endl;
 
     // Get username and password
     // login or register
-    while(!tempUser.Login());
+    while(!loggedIn) {
+        memset(server_message,0,2000);
+        if (tempUser.Login()) {
+            // check if logged in
+            if (IsLoggedIn(tempUser.username)) {
+                std::cout << "Sent.\n";
+                sprintf(server_message,"103");
+                write(sock, &server_message, strlen(server_message));
+                
+            } else {
+                sprintf(server_message,"100");
+                write(sock, &server_message, strlen(server_message));
+                loggedIn = true;
+            }
+
+        }
+
+    }
+    std::cout << "\'" << tempUser.username << "\' succesfully logged in.\n";
 
     // adds user if logged in
     // exit if client wants to exit
-    
     if (tempUser.exitUser){
         close(tempUser.sock);
         //users.erase(users.begin() + it);
-        std::cout << "Connection Terminated In Login.\n";
+        std::cout << "Connection with \'" << tempUser.username<<  "\' terminated during login.\n";
         return;
     }
 
-
     userMtx.lock();
     users.push_back(tempUser);
-    std::cout <<"1\n";
-    DisplayOnline();
     userMtx.unlock();
-    
 
+    // weather app functions
     ExecuteCommands(tempUser);
   
+    // log out and delete from vector
     userMtx.lock();
     LogoutUser(tempUser.username); // update to remove subscriptions
     userMtx.unlock();
 
     close(tempUser.sock);
 
-    std::cout << "Connection Terminated.\n";
+    std::cout << "Connection with \'" << tempUser.username << "\' terminated\n";
 
-    userMtx.lock();
+/*     userMtx.lock();
     DisplayOnline();
-    userMtx.unlock();
+    userMtx.unlock(); */
 }

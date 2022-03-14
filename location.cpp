@@ -4,30 +4,28 @@ void Location::BroadcastMessage(std::string sender, std::string message) {
     std::cout << "Feature not available yet.\n";
 }
 
+// push_back username if not found
 bool Location::subscribeUser(std::string username, int socket) {
     if (alreadySubscribed(username)) {
-        std::cout << "Already subscribed.\n";
+        std::cout << username << " already subscribed to " << locName << "\n";
         return false;
     }
     nameSubbed.push_back(username);
     socketSubbed.push_back(socket);
     return true;
-} // push_back username if not found
+} 
 
+// erase username from vector
 void Location::unsubscribeUser(std::string username) {
     for (long unsigned int i = 0; i < nameSubbed.size();i++) {
         if (username == nameSubbed[i]) {
-            std::cout << "LL";
-            DisplayUsers();
             nameSubbed.erase(nameSubbed.begin() + i);
             socketSubbed.erase(socketSubbed.begin() + i);
-            DisplayUsers();
             return;
         }
     }
-    std::cout << "User doesn't exist.\n";
     
-} // erase matching username
+} 
 
 bool Location::alreadySubscribed(std::string username) {
     for (long unsigned int i = 0; i < nameSubbed.size();i++) {
@@ -39,7 +37,7 @@ bool Location::alreadySubscribed(std::string username) {
 }
 
 void Location::DisplayUsers() {
-    std::cout << "Users subscribed to " << locName << std::endl;
+    std::cout << "Users subscribed to \'" << locName << "\' are " << std::endl;
 
     for (long unsigned int i = 0; i < nameSubbed.size();i++) {
         std::cout << nameSubbed[i] << " ";
