@@ -182,7 +182,7 @@ void tcpServer::UnsubscribeUser(std::string locationName, User tempUser) {
     userMtx.lock();
     users.at(FindPos(tempUser.username)) = tempUser;
     userMtx.unlock();
-    DisplayLocations();
+    //DisplayLocations();
     
 }
 
