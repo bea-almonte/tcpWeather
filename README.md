@@ -1,7 +1,7 @@
-# HTTP Server Project - Bea Almonte
+# TCP Server Project - Bea Almonte
 ## Description
 
-This project implements an HTTP server to be run by a browser client.
+This project implements an TCP server and client that will communicated with the server. The server will take the client requests. The client takes requests from the user.
 
 
 **The submission includes the following files:**
