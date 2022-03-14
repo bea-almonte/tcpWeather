@@ -233,8 +233,8 @@ void tcpClient::CloseSocket() {
 }
 void tcpClient::OutputMenu() {
     std::cout << "Select an option:\n";
-    std::cout << " 1 Subsrcribe to a location\n";
-    std::cout << " 2 Unsubsrcribe from a location\n";
+    std::cout << " 1 Subscribe to a location\n";
+    std::cout << " 2 Unsubscribe from a location\n";
     std::cout << " 3 All locations subcribed to\n";
     std::cout << " 4 Send a message to a location\n";
     std::cout << " 5 See all online users\n";
