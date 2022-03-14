@@ -9,10 +9,10 @@ This project implements an TCP server and client that will communicated with the
 
 |                      |                    |
 | -------------------- | -------------------|
-| location.cpp         | location.o         |
-| user.cpp             | user.o             |
-| tcpClient.cpp        | tcpClient.o        |
-| tcpServer.cpp        | tcpServer.o        |
+| location.cpp         | location.hpp       |
+| user.cpp             | user.hpp           |
+| tcpClient.cpp        | tcpClient.hpp      |
+| tcpServer.cpp        | tcpServer.hpp      |
 | server.cpp           | client.cpp         |
 | usernames.txt        | passwords.txt      |
 | Makefile             | README.md          |
