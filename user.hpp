@@ -1,3 +1,9 @@
+// bea almonte
+// Due: 3/13/21
+// user.hpp
+// header file that contains the login, subscriptions
+// and socket number
+
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/socket.h>

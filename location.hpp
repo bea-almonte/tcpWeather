@@ -1,3 +1,8 @@
+// bea almonte
+// Due: 3/13/21
+// location.hpp
+// contains the name of location and vector to hold the
+// usernames and sockets of subscribers
 #include <iostream>
 #include <string>
 #include <vector>

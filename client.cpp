@@ -1,3 +1,8 @@
+// bea almonte
+// Due: 3/13/21
+// cliet.cpp
+// runs the client object
+
 #include "tcpClient.hpp"
 
 int main(int argc, char ** argv)
@@ -8,7 +13,7 @@ int main(int argc, char ** argv)
     {
         Client.SetPort(std::stoi(argv[1]));
     } else {
-        Client.SetPort(60000);
+        Client.SetPort(60022);
     }
     
     // Connect to server using input port

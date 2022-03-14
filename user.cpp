@@ -1,3 +1,8 @@
+// bea almonte
+// Due: 3/13/21
+// user.hpp
+// implements the user class which contains the login
+// and messages (to be implemented in part 2)
 #include "user.hpp"
 
 User& User::operator=(const User& createdUser) {
@@ -67,7 +72,8 @@ bool User::Login() {
         // check username
         if (CheckUsername(username) >= 0) {
             if (CheckPassword(CheckUsername(username),password)) {
-                // returns to tcpClient which will check if username is online
+                sprintf(server_message,"100");
+                write(sock, &server_message, strlen(server_message));
                 return true;
             } else {
                 sprintf(server_message,"102");

@@ -1,8 +1,14 @@
+// bea almonte
+// Due: 3/13/22
+// tcpClient.cpp
+// contains functions to interact with the server connected
+// and store subscriptions
+
 #include "tcpClient.hpp"
 
 tcpClient::tcpClient() {
     endProgram = false;
-    port = 60000;
+    port = 60022;
 }
 
 void tcpClient::SetPort(int userPort) {
@@ -89,6 +95,7 @@ void tcpClient::Login() {
                 std::cout << "Incorrect Password.\n";
             } else if (test == "103") {
                 std::cout << "Account already logged in.\n";
+                continue;
             } else {
                 //std::cout << "RESPONSE: " << server_message << std::endl;
                 std::cout << "Bad server response.\n";

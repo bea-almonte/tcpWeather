@@ -1,3 +1,7 @@
+// bea almonte
+// Due: 3/13/21
+// description of the class that is used to store locations,
+// users, and subscribers
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/socket.h>

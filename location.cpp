@@ -1,3 +1,7 @@
+// bea almonte
+// Due: 3/13/21
+// contains functions to hold the username subscribed to location
+
 #include "location.hpp"
 
 void Location::BroadcastMessage(std::string sender, std::string message) {

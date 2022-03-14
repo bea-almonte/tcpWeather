@@ -1,3 +1,8 @@
+// bea almonte
+// Due: 3/13/21
+// tcpServer.cpp
+// contains functions to read the requests the clients make
+// and send appropriate responses
 #include "tcpServer.hpp"
 #include <errno.h>
 
@@ -288,7 +293,7 @@ void tcpServer::ChangePassword(std::string newPass, User tempUser) {
     userMtx.lock();
     users.at(FindPos(tempUser.username)) = tempUser;
     userMtx.unlock();
-
+    
     std::cout << users.at(FindPos(tempUser.username)).username << "'s password changed from " << passwords << " to "  << users.at(FindPos(tempUser.username)).password << std::endl;
 
 }
@@ -329,6 +334,7 @@ void tcpServer::ChangePasswordFile(std::string newPass, std::string findUser) {
         outPass << temp << std::endl;
     }
     std::cout << "\'passwords.txt\' updated.\n";
+    remove( "passwordDel.txt" );
     inPass.close();
     outPass.close();
 }
@@ -348,37 +354,20 @@ bool tcpServer::IsLoggedIn(std::string newUser) {
 // A client thread
 void tcpServer::Process(int sock) {
     User tempUser;
-    char server_message[2000];
+    //char server_message[2000];
     tempUser.sock = sock;
-    bool loggedIn = false;
+    //bool loggedIn = false;
 
     std::cout << "Client connected to " << tempUser.sock << std::endl;
 
     // Get username and password
     // login or register
-    while(!loggedIn) {
-        memset(server_message,0,2000);
-        if (tempUser.Login()) {
-            // check if logged in
-            if (IsLoggedIn(tempUser.username)) {
-                std::cout << "Sent.\n";
-                sprintf(server_message,"103");
-                write(sock, &server_message, strlen(server_message));
-                
-            } else {
-                sprintf(server_message,"100");
-                write(sock, &server_message, strlen(server_message));
-                loggedIn = true;
-            }
-
-        }
-
-    }
+    while(!tempUser.Login());
     std::cout << "\'" << tempUser.username << "\' succesfully logged in.\n";
 
     // adds user if logged in
     // exit if client wants to exit
-    if (tempUser.exitUser){
+    if (tempUser.exitUser) {
         close(tempUser.sock);
         //users.erase(users.begin() + it);
         std::cout << "Connection with \'" << tempUser.username<<  "\' terminated during login.\n";

@@ -1,3 +1,8 @@
+// bea almonte
+// Due: 3/13/21
+// server.cpp
+// runs the tcpServer object
+
 #include <iostream>
 #include "tcpServer.hpp"
 
@@ -11,7 +16,9 @@ int main (int argc, char** argv) {
         Weather.CreateSocket(60022);
     }   
 
-    Weather.AcceptClients();
+    if (!Weather.AcceptClients()) {
+        return -1;
+    }
 
     return 0;
 }
