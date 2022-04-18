@@ -180,7 +180,7 @@ void tcpServer::UnsubscribeUser(std::string locationName, User tempUser) {
     } else {
         locations.at(LocationExists(locationName)).unsubscribeUser(tempUser.username);
         tempUser.UnuscribeLocation(locationName);
-        sprintf(server_message,"Removed %s from subscriptions", locationName.c_str());
+        sprintf(server_message,"Removed %s from subscriptions\n", locationName.c_str());
         write(tempUser.sock,&server_message,strlen(server_message));
     }
     locMtx.unlock();
