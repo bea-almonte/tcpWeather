@@ -1,5 +1,5 @@
 // bea almonte
-// Due: 3/13/22
+// Due: 4/17/22
 // tcpClient.cpp
 // contains functions to interact with the server connected
 // and store subscriptions
@@ -172,12 +172,7 @@ void tcpClient::SendInput() {
                 strcpy(client_message,input.c_str());
                 // send request
                 write(sock, &client_message, strlen(client_message));
-                // send location to confirm
-                /* memset(server_message,0,2000);
-                recv(sock, server_message, sizeof(server_message), 0);
-                std::cout << "==================================\n";
-                std::cout << server_message;
-                std::cout << "==================================\n"; */
+              
                 break;
             case '2':
                 std::cout << "Enter location to unsubscribe from:\n>";
@@ -185,29 +180,14 @@ void tcpClient::SendInput() {
                 strcpy(client_message,input.c_str());
                 // send request
                 write(sock, &client_message, strlen(client_message));
-                // send location to confirm
-                /* memset(server_message,0,2000);
-                recv(sock, server_message, sizeof(server_message), 0);
-                std::cout << "==================================\n";
-                std::cout << server_message << std::endl;
-                std::cout << "==================================\n"; */
+              
                 break;
             case '3':
-                /* memset(server_message,0,2000);
-                recv(sock, server_message, sizeof(server_message), 0);
-                std::cout << "==================================\n";
-                std::cout << server_message << std::endl;
-                std::cout << "==================================\n"; */
+               
                 break;
             case '4':
                 std::cout << "Enter location to send to:\n";
-                // received locations subbed to
-                /* memset(server_message,0,2000);
-                recv(sock, server_message, sizeof(server_message), 0);
-                std::cout << "==================================\n";
-                std::cout << server_message << std::endl;
-                std::cout << "==================================\n"; */
-                // send location to send messaged to 
+             
                 std::cin >> input;
                 strcpy(client_message,input.c_str());
                 // send location
@@ -222,8 +202,6 @@ void tcpClient::SendInput() {
                 write(sock, &client_message, strlen(client_message));
                 break;
             case '5':
- /*                std::cout << "See all online users ";
-                std::cout << "feature not available yet.\n"; */
                 break;
             case '6':
                 std::cout << "Enter user to send to:\n";
@@ -242,7 +220,6 @@ void tcpClient::SendInput() {
                 break;
             case '7':
                 std::cout << "Display last 10 messages ";
-               // std::cout << "feature not available yet.\n";
                 break;
             case '8':
                 std::cout << "Enter new password:\n>";
@@ -267,7 +244,7 @@ void tcpClient::OutputMenu() {
     std::cout << "Select an option:\n";
     std::cout << " 1 Subscribe to a location\n";
     std::cout << " 2 Unsubscribe from a location\n";
-    std::cout << " 3 All locations subcribed to\n";
+    std::cout << " 3 All locations subscribed to\n";
     std::cout << " 4 Send a message to a location\n";
     std::cout << " 5 See all online users\n";
     std::cout << " 6 Send a message to a user\n";
@@ -294,7 +271,5 @@ void tcpClient::ReceiveMsg() {
         std::cout << "Next command:\n";
         
     }
-    //std::cout << "Thread created.\n";
-    //sprintf(client_message,"From Created Thread.\n");
-    //write(sock, &client_message, strlen(client_message));
+
 }

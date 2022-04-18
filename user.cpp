@@ -1,5 +1,5 @@
 // bea almonte
-// Due: 3/13/21
+// Due: 4/17/22
 // user.hpp
 // implements the user class which contains the login
 // and messages (to be implemented in part 2)
@@ -21,6 +21,7 @@ User& User::operator=(const User& createdUser) {
     return *this;
 }
 
+// add message to most recent messages
 void User::AddMessage(std::string message, std::string sender) {
     std::string insertedMsg;
     insertedMsg += sender;
@@ -33,6 +34,7 @@ void User::AddMessage(std::string message, std::string sender) {
     messages.push_front(insertedMsg);
 }
 
+// transfer all received messages to a string
 std::string User::MsgToStr() {
     std::string finalMsg;
     finalMsg += "Last 10 messages\n";
@@ -217,10 +219,6 @@ void User::SendLocations() {
     //std::cout << allLocations << std::endl;
     strcpy(server_message,allLocations.c_str());
     write(sock, &server_message, strlen(server_message));
-}
-
-void User::SendMessage(std::string location) {
-// TODO: for part 2
 }
 
 // add location to local location vector

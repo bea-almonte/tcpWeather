@@ -44,13 +44,13 @@ class tcpServer {
     void SubscribeUser(std::string locationName, User tempUser); // subscribe use to location
     void UnsubscribeUser(std::string locationName, User tempUser); // unsubscribe user to location
     void DisplayLocations();
-    int FindPos(std::string inputName);
+    int FindPos(std::string inputName); // find position of user given username
     void ChangePassword(std::string newPass, User tempUser);
     void ChangePasswordFile(std::string newPass, std::string findUser);
-    bool IsLoggedIn(std::string newUser);
-    void BroadcastMessage(std::string sender, std::string message, int locationPos, int senderSock);
-    void PrivateMsg(std::string sender, std::string message, int recSock);
-    void SendPrevMsgs(int userPos);
+    bool IsLoggedIn(std::string newUser); // check if user is logged in
+    void BroadcastMessage(std::string sender, std::string message, int locationPos, int senderSock); // send msg to location
+    void PrivateMsg(std::string sender, std::string message, int recSock); // send private msg from sender to user
+    void SendPrevMsgs(int userPos); // sends 10 recent messages to client
 };
 
 #endif

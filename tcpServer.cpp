@@ -1,5 +1,5 @@
 // bea almonte
-// Due: 3/13/21
+// Due: 4/17/22
 // tcpServer.cpp
 // contains functions to read the requests the clients make
 // and send appropriate responses
@@ -203,15 +203,14 @@ void tcpServer::DisplayLocations() {
     }
 }
 
+// send messages to people subscribed to location
 void tcpServer::BroadcastMessage(std::string sender, std::string message, int locationPos, int senderSock) {
     char server_message[2000];
     memset(server_message,0,2000);
-    std::cout << "Sending1: "  << locations.at(locationPos).totalSubscribed <<"g\n";
 
     for (int i = 0; i < locations.at(locationPos).totalSubscribed; i++) {
         if (locations.at(locationPos).socketSubbed.at(i) != senderSock) {
             sprintf(server_message,"From %s: %s\n",sender.c_str(), message.c_str());
-            std::cout << "Sending: "  << server_message;
             write(locations.at(locationPos).socketSubbed.at(i),&server_message,strlen(server_message));
             // update messages vector
             userMtx.lock();
@@ -224,6 +223,7 @@ void tcpServer::BroadcastMessage(std::string sender, std::string message, int lo
     
 }
 
+// send previous ten messages of user to client
 void tcpServer::SendPrevMsgs(int userPos) {
     char server_message[2000];
     memset(server_message,0,2000);
@@ -233,6 +233,7 @@ void tcpServer::SendPrevMsgs(int userPos) {
     userMtx.unlock();
 }
 
+// send a private message to one user
 void tcpServer::PrivateMsg(std::string sender, std::string message, int recSock) {
     char server_message[2000];
     memset(server_message,0,2000);
@@ -304,9 +305,6 @@ void tcpServer::ExecuteCommands(User tempUser) {
                 break;
             case '3':
                 // std::cout << "Display locations subbed\n";
-                // send code 
-                // client recv()
-                // displayloc(locations vec);
                 tempUser.SendLocations();
             
                 break;
@@ -490,7 +488,4 @@ void tcpServer::Process(int sock) {
 
     std::cout << "Connection with \'" << tempUser.username << "\' terminated\n";
 
-/*     userMtx.lock();
-    DisplayOnline();
-    userMtx.unlock(); */
 }
