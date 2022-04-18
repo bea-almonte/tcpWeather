@@ -13,10 +13,34 @@ User& User::operator=(const User& createdUser) {
         for (long unsigned int i = 0;i < createdUser.locations.size(); i++) {
             this->locations.at(i) = createdUser.locations.at(i);
         }
+        this->messages = createdUser.messages;
+
         this->sock = createdUser.sock;
         this->exitUser = createdUser.exitUser;
     }
     return *this;
+}
+
+void User::AddMessage(std::string message, std::string sender) {
+    std::string insertedMsg;
+    insertedMsg += sender;
+    insertedMsg += " - ";
+    insertedMsg += message;
+    
+    if (insertedMsg.size() == 10) {
+        messages.pop_back();
+    }
+    messages.push_front(insertedMsg);
+}
+
+std::string User::MsgToStr() {
+    std::string finalMsg;
+    finalMsg += "Last 10 messages\n";
+    for (unsigned long int i = 0; i < messages.size(); i++) {
+        finalMsg += messages.at(i);
+        finalMsg += "\n";
+    }
+    return finalMsg;
 }
 
 bool User::Login() {
@@ -182,12 +206,12 @@ bool User::AlreadyRegistered(std::string userInput) {
 // send locations to client
 void User::SendLocations() {
     char server_message[2000];// client_message[2000];
-    std::string allLocations = "Locations subscribed to are \n";
+    std::string allLocations = "Locations subscribed to are:\n";
     //std::cout << "size: " << locations.size() << std::endl;
 
     for (long unsigned int i = 0; i < locations.size(); i++) {
         allLocations.append(locations.at(i));
-        allLocations.append(" ");
+        allLocations.append("\n");
     }
 
     //std::cout << allLocations << std::endl;

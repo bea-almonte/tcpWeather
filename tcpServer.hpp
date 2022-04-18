@@ -37,7 +37,7 @@ class tcpServer {
     bool AcceptClients(); // marks socket as passive, start accepting clients
     private:
     void LogoutUser(std::string userDel); // logouts, unsubs
-    void DisplayOnline(); // displays sockets and online users
+    void DisplayOnline(int userSock); // displays sockets and online users
     void ExecuteCommands(User tempUser); // main request loop, executes command based on request 
     std::string ConvertoString(char message[]); // convert char to string
     int LocationExists(std::string locationName); // check if location exists in vector
@@ -48,6 +48,9 @@ class tcpServer {
     void ChangePassword(std::string newPass, User tempUser);
     void ChangePasswordFile(std::string newPass, std::string findUser);
     bool IsLoggedIn(std::string newUser);
+    void BroadcastMessage(std::string sender, std::string message, int locationPos, int senderSock);
+    void PrivateMsg(std::string sender, std::string message, int recSock);
+    void SendPrevMsgs(int userPos);
 };
 
 #endif

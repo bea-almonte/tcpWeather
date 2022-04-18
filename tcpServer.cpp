@@ -90,10 +90,17 @@ void tcpServer::LogoutUser(std::string userDel) {
 }
 
 // displays online users
-void tcpServer::DisplayOnline() {
+void tcpServer::DisplayOnline(int userSock) {
+    std::string usersString;
+    char server_message[2000];
+    usersString += "User online:\n";
+
     for (long unsigned int i = 0; i < users.size(); i++) {
-        std::cout << users.at(i).sock << " | " << users.at(i).username << std::endl;
+        usersString += users.at(i).username;
+        usersString += "\n";
     }
+    sprintf(server_message,usersString.c_str());
+    write(userSock,&server_message,strlen(server_message));
 }
 
 // convert char to string
@@ -196,16 +203,62 @@ void tcpServer::DisplayLocations() {
     }
 }
 
+void tcpServer::BroadcastMessage(std::string sender, std::string message, int locationPos, int senderSock) {
+    char server_message[2000];
+    memset(server_message,0,2000);
+    std::cout << "Sending1: "  << locations.at(locationPos).totalSubscribed <<"g\n";
+
+    for (int i = 0; i < locations.at(locationPos).totalSubscribed; i++) {
+        if (locations.at(locationPos).socketSubbed.at(i) != senderSock) {
+            sprintf(server_message,"From %s: %s\n",sender.c_str(), message.c_str());
+            std::cout << "Sending: "  << server_message;
+            write(locations.at(locationPos).socketSubbed.at(i),&server_message,strlen(server_message));
+            // update messages vector
+            userMtx.lock();
+            users.at(FindPos(locations.at(locationPos).nameSubbed.at(i))).AddMessage(message,sender);
+            userMtx.unlock();
+        }
+     
+    }
+    
+    
+}
+
+void tcpServer::SendPrevMsgs(int userPos) {
+    char server_message[2000];
+    memset(server_message,0,2000);
+    userMtx.lock();
+    strcpy(server_message,users.at(userPos).MsgToStr().c_str());
+    write(users.at(userPos).sock,&server_message,strlen(server_message));
+    userMtx.unlock();
+}
+
+void tcpServer::PrivateMsg(std::string sender, std::string message, int recSock) {
+    char server_message[2000];
+    memset(server_message,0,2000);
+    sprintf(server_message,"From %s: %s\n",sender.c_str(), message.c_str());
+    std::cout << "Sending: "  << server_message;
+    write(users.at(recSock).sock,&server_message,strlen(server_message));
+    // update messages vector
+    userMtx.lock();
+    users.at(recSock).AddMessage(message,sender);
+    userMtx.unlock();
+
+}
+
 void tcpServer::ExecuteCommands(User tempUser) {
-    char client_message[2000];//,server_message[2000], 
+    char client_message[2000],server_message[2000];
     int received = 0;
     char code = 'x';
     bool exitUser = false;
+    int LocPos = 0; // location position
+    int SendSock = 0;
     Location tempLocation;
     std::string input;
     while (!exitUser) {
         tempUser = users.at(FindPos(tempUser.username));
         memset(client_message,0,2000);
+        
         received = recv(tempUser.sock, client_message, sizeof(client_message), 0);
         std::string request(client_message);
         if (received <= 0) {
@@ -259,15 +312,62 @@ void tcpServer::ExecuteCommands(User tempUser) {
                 break;
             case '4':
                 //std::cout << "Send message to location\n";
+                // send locations subbed to
+                tempUser.SendLocations();
+                memset(server_message,0,2000);
+                // receive location to send message to
+                recv(tempUser.sock, client_message, sizeof(client_message), 0);
+                input = ConvertoString(client_message);
+                std::cout << "Attempting to send message to " << input << ".\n";
+                LocPos = LocationExists(input);
+                // message
+                
+                memset(client_message,0,2000);
+                recv(tempUser.sock, client_message, sizeof(client_message), 0);
+                input = ConvertoString(client_message);
+                std::cout << "Message: " << input << ".\n";
+                if (LocPos >= 0) {
+                    locations.at(LocPos).DisplayUsers();
+                    // recc
+                    BroadcastMessage(tempUser.username, input, LocPos,tempUser.sock);
+                } else {
+                    strcpy(server_message,"Not subscribed to location.");
+                    write(tempUser.sock,&server_message,strlen(server_message));
+
+                }
                 break;
             case '5':
                 //std::cout << "See all online users\n";
+                userMtx.lock();
+                DisplayOnline(tempUser.sock);
+                userMtx.unlock();
                 break;
             case '6':
                 //std::cout << "Send message to user\n";
+                userMtx.lock();
+                DisplayOnline(tempUser.sock);
+                userMtx.unlock();
+
+                memset(server_message,0,2000);
+                // receive user to send message to
+                recv(tempUser.sock, client_message, sizeof(client_message), 0);
+                input = ConvertoString(client_message);
+                std::cout << "Attempting to send message to " << input << ".\n";
+                SendSock = FindPos(input);
+                // message
+                memset(client_message,0,2000);
+                recv(tempUser.sock, client_message, sizeof(client_message), 0);
+                input = ConvertoString(client_message);
+                if (SendSock >= 0) {
+                    // recc
+                    PrivateMsg(tempUser.username,input,SendSock);
+                } else {
+                    strcpy(server_message,"User not online.\n");
+                    write(tempUser.sock,&server_message,strlen(server_message));
+                }
                 break;
             case '7':
-                //std::cout << "Display last 10 messages\n";
+                SendPrevMsgs(FindPos(tempUser.username));
                 break;
             case '8':
                 std::cout << "Change password\n";

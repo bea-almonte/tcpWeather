@@ -16,6 +16,7 @@ bool Location::subscribeUser(std::string username, int socket) {
     }
     nameSubbed.push_back(username);
     socketSubbed.push_back(socket);
+    totalSubscribed++;
     return true;
 } 
 
@@ -25,6 +26,7 @@ void Location::unsubscribeUser(std::string username) {
         if (username == nameSubbed[i]) {
             nameSubbed.erase(nameSubbed.begin() + i);
             socketSubbed.erase(socketSubbed.begin() + i);
+            totalSubscribed--;
             return;
         }
     }
@@ -41,7 +43,7 @@ bool Location::alreadySubscribed(std::string username) {
 }
 
 void Location::DisplayUsers() {
-    std::cout << "Users subscribed to \'" << locName << "\' are " << std::endl;
+    std::cout << "Users subscribed to \'" << locName << "\' are: " << std::endl;
 
     for (long unsigned int i = 0; i < nameSubbed.size();i++) {
         std::cout << nameSubbed[i] << " ";

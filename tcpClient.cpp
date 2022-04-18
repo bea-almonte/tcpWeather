@@ -141,11 +141,13 @@ void tcpClient::SendInput() {
     thread_.detach();
     
     while (!exitUser) {
+        
         OutputMenu();
+        
         memset(client_message,0,2000);
-        std::cout << ">";
+        
         std::cin >> input;
-        //sockMtx.unlock();
+        
         if (input == "0") {
             strcpy(client_message,input.c_str());
             write(sock, &client_message, strlen(client_message));
@@ -157,6 +159,7 @@ void tcpClient::SendInput() {
         }
         strcpy(client_message,input.c_str());
         std::string response;
+       
         switch (input[0]) {
             case '0':
                 std::cout << "Exiting...\n";
@@ -170,11 +173,11 @@ void tcpClient::SendInput() {
                 // send request
                 write(sock, &client_message, strlen(client_message));
                 // send location to confirm
-                memset(server_message,0,2000);
+                /* memset(server_message,0,2000);
                 recv(sock, server_message, sizeof(server_message), 0);
                 std::cout << "==================================\n";
                 std::cout << server_message;
-                std::cout << "==================================\n";
+                std::cout << "==================================\n"; */
                 break;
             case '2':
                 std::cout << "Enter location to unsubscribe from:\n>";
@@ -183,34 +186,63 @@ void tcpClient::SendInput() {
                 // send request
                 write(sock, &client_message, strlen(client_message));
                 // send location to confirm
-                memset(server_message,0,2000);
+                /* memset(server_message,0,2000);
                 recv(sock, server_message, sizeof(server_message), 0);
                 std::cout << "==================================\n";
                 std::cout << server_message << std::endl;
-                std::cout << "==================================\n";
+                std::cout << "==================================\n"; */
                 break;
             case '3':
-                memset(server_message,0,2000);
+                /* memset(server_message,0,2000);
                 recv(sock, server_message, sizeof(server_message), 0);
                 std::cout << "==================================\n";
                 std::cout << server_message << std::endl;
-                std::cout << "==================================\n";
+                std::cout << "==================================\n"; */
                 break;
             case '4':
-                std::cout << "Send message to location ";
-                std::cout << "feature not available yet.\n";
+                std::cout << "Enter location to send to:\n";
+                // received locations subbed to
+                /* memset(server_message,0,2000);
+                recv(sock, server_message, sizeof(server_message), 0);
+                std::cout << "==================================\n";
+                std::cout << server_message << std::endl;
+                std::cout << "==================================\n"; */
+                // send location to send messaged to 
+                std::cin >> input;
+                strcpy(client_message,input.c_str());
+                // send location
+                write(sock, &client_message, strlen(client_message));
+                // send message
+                std::cout << "Enter message:\n";
+                std::cin.ignore();
+                getline(std::cin, input);
+                //std::cin >> input;
+                memset(client_message,0,2000);
+                strcpy(client_message,input.c_str());
+                write(sock, &client_message, strlen(client_message));
                 break;
             case '5':
-                std::cout << "See all online users ";
-                std::cout << "feature not available yet.\n";
+ /*                std::cout << "See all online users ";
+                std::cout << "feature not available yet.\n"; */
                 break;
             case '6':
-                std::cout << "Send message to user ";
-                std::cout << "feature not available yet.\n";
+                std::cout << "Enter user to send to:\n";
+
+                std::cin >> input;
+                strcpy(client_message,input.c_str());
+                // send location
+                write(sock, &client_message, strlen(client_message));
+                // send message
+                std::cout << "Enter message:\n";
+                std::cin.ignore();
+                getline(std::cin, input);
+                memset(client_message,0,2000);
+                strcpy(client_message,input.c_str());
+                write(sock, &client_message, strlen(client_message));
                 break;
             case '7':
                 std::cout << "Display last 10 messages ";
-                std::cout << "feature not available yet.\n";
+               // std::cout << "feature not available yet.\n";
                 break;
             case '8':
                 std::cout << "Enter new password:\n>";
@@ -225,7 +257,7 @@ void tcpClient::SendInput() {
                 break;
 
         }
-        //sockMtx.unlock();
+
     }
 }
 void tcpClient::CloseSocket() {
@@ -246,13 +278,22 @@ void tcpClient::OutputMenu() {
 
 // TODO: for next part
 void tcpClient::ReceiveMsg() {
-/*     while (!endProgram) {
-        memset(client_message,0,2000);
-        std::cout << "Thread created.\n";
-        sprintf(client_message,"From Created Thread.\n");
-        write(sock, &client_message, strlen(client_message));
-    } */
-    memset(client_message,0,2000);
+    std::cout << "Thread created.\n";
+    
+    while (!endProgram) {
+
+        
+        memset(server_message,0,2000);
+        if (recv(sock, server_message, sizeof(server_message), 0) > 0) {
+            //std::cout << "From thread.\n";
+            std::cout << "==================================" << std::endl;
+            std::cout << server_message;
+            std::cout << "==================================" << std::endl;
+            
+        }
+        std::cout << "Next command:\n";
+        
+    }
     //std::cout << "Thread created.\n";
     //sprintf(client_message,"From Created Thread.\n");
     //write(sock, &client_message, strlen(client_message));
