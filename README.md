@@ -54,3 +54,9 @@ This project implements an TCP server and client that will communicated with the
 
 ### Change Password
 - The program will changed the user password using a input with no whitespace.
+
+## Send Messages to location
+- An output of all subscribed locations are displayed. User has to input the location and then the message to send it. All users except the one sending it will receive the message.
+
+## Send Private Message to User
+- An output of all online users are displayed. User has to input the username of the recepient and then the message.
